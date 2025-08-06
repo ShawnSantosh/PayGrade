@@ -136,7 +136,7 @@ def main():
                     st.write("No matching job openings found for this search.")
 
     elif app_mode == "Compare Multiple Offers":
-        st.header("📂 Compare Multiple Offers")
+        st.header("Offer Comparator")
         uploaded_files = st.file_uploader("Upload 2 or more offer letters (PDFs)", type="pdf", accept_multiple_files=True)
         
         if uploaded_files and len(uploaded_files) > 1:
@@ -189,4 +189,5 @@ if __name__ == "__main__":
     for key in keys_to_init:
         if key not in st.session_state:
             st.session_state[key] = [] if 'history' in key else None
+
     main()
