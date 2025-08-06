@@ -1,0 +1,16 @@
+streamlit
+python-dotenv
+groq
+langchain
+langchain-groq
+langchain-community
+langchain-anthropic
+langchainhub
+pypdf
+faiss-cpu
+requests
+pandas
+sentence-transformers
+langchain-huggingface
+tf-keras
+certifi
