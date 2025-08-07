@@ -31,15 +31,17 @@ def load_ai_resources():
             tools = get_tools(vector_store)
             agent_executor = create_agent_executor(llm, tools)
         
+        # --- FIX 1: Return the vector_store as well ---
         return llm, vector_store, agent_executor
     except Exception as e:
         st.error(f"A critical error occurred during AI resource initialization: {e}")
         return None, None, None
 
 def main():
-    st.set_page_config(page_title="AI Salary & Career Advisor", page_icon="💼")
-    st.title("💼 AI Salary & Career Advisor")
+    st.set_page_config(page_title="PayGrade AI", page_icon="")
+    st.title("PayGrade AI")
 
+    # --- FIX 2: Receive the vector_store here ---
     llm, vector_store, agent_executor = load_ai_resources()
 
     st.sidebar.title("Configuration")
@@ -66,7 +68,7 @@ def main():
     app_mode = st.sidebar.selectbox("Select a Feature", feature_list)
 
     if app_mode == "Resume Analysis & Job Matching":
-        st.header("📄 Analyze Resume, Estimate Salary & Find Jobs")
+        st.header("Analyze Resume, Estimate Salary & Find Jobs")
         
         uploaded_file = st.file_uploader("Upload your resume (PDF)", type="pdf")
 
@@ -101,6 +103,7 @@ def main():
 
             col1, col2 = st.columns(2)
             with col1:
+                # The error was here because 'vector_store' was not defined in this scope. It is now.
                 if st.button("Estimate Salary & Analyze Fit"):
                     if target_role_input and vector_store:
                         with st.spinner("Comparing your profile..."):
@@ -134,10 +137,29 @@ def main():
 
     elif app_mode == "Compare Multiple Offers":
         st.header("📂 Compare Multiple Offers")
-        # Full code for this feature goes here
+        uploaded_files = st.file_uploader("Upload 2 or more offer letters (PDFs)", type="pdf", accept_multiple_files=True)
+        
+        if uploaded_files and len(uploaded_files) > 1:
+            all_analyses = []
+            with st.spinner(f"Analyzing {len(uploaded_files)} offers..."):
+                for file in uploaded_files:
+                    text = extract_text_from_pdf(file)
+                    if text and "Error" not in text:
+                        analysis_str = analyze_document_text(text, llm)
+                        try:
+                            analysis_json = json.loads(analysis_str.strip())
+                            analysis_json['File Name'] = file.name
+                            all_analyses.append(analysis_json)
+                        except (json.JSONDecodeError, TypeError):
+                            st.warning(f"Could not parse analysis for {file.name}.")
+            
+            if all_analyses:
+                st.subheader("Offer Comparison Table")
+                df = pd.DataFrame(all_analyses).set_index('File Name')
+                st.dataframe(df)
 
     elif app_mode == "AI Agent & Simulator":
-        st.header("🤖 AI Agent & Negotiation Simulator")
+        st.header("🤖 Chat With Kariar")
         history = StreamlitChatMessageHistory(key="agent_chat_history")
         
         if not history.messages:
